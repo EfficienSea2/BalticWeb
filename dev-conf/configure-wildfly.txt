@@ -1,0 +1,33 @@
+# Use the Wildfly CLI to update the configuration.
+# Please refer to:
+# https://docs.jboss.org/author/display/AS71/CLI+Recipes
+
+# Start offline server
+embed-server --std-out=echo
+
+# Add mysql module
+module add \
+  --name=com.mysql \
+  --resources=mysql-connector-java-5.1.36-bin.jar \
+  --dependencies=javax.api,javax.transaction.api
+
+# Add mysql driver
+/subsystem=datasources/jdbc-driver=mysql:add(driver-name=mysql,driver-module-name=com.mysql,driver-class-name=com.mysql.jdbc.Driver)
+
+# Add data source
+data-source add \
+  --name=BalticWebDS \
+  --jndi-name=java:jboss/datasources/BalticWebDS \
+  --driver-name=mysql \
+  --connection-url=jdbc:mysql://localhost:3306/balticweb \
+  --user-name=balticweb \
+  --password=balticweb \
+  --transaction-isolation=TRANSACTION_READ_COMMITTED \
+  --min-pool-size=10 \
+  --max-pool-size=200 \
+  --prepared-statements-cache-size=100 \
+  --share-prepared-statements=true
+
+# Reload and stop offline server
+reload --admin-only=false
+stop-embedded-server
